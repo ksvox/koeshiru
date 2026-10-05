@@ -50,7 +50,7 @@ export default function Top({ onStart }) {
             ))}
           </div>
         </Feat>
-        <Feat no="03" title="アドバイスと提案" body="声がもっと良くなる練習法と、K's VOXのオリジナル英語曲からあなたに合う曲をご提案します。" last />
+        <Feat no="03" title="アドバイスと提案" body="声がもっと良くなる練習法と、K's VOXのオリジナル英語曲からあなたにお勧めの曲をご提案します。" last />
       </div>
 
       <div className="card rel" style={{ margin: '14px 16px 0', padding: '20px 18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -74,7 +74,7 @@ export default function Top({ onStart }) {
           録音した声は、どこにも送信・保存されません
         </div>
       </div>
-      <p className="rel" style={{ textAlign: 'center', fontSize: 11, color: '#7F89A3', marginTop: 22 }}>© K's VOX ボーカル道場(東京・五反田)</p>
+      <p className="rel" style={{ textAlign: 'center', fontSize: 11, color: '#7F89A3', marginTop: 22 }}>© ボーカル道場K's VOX (東京・五反田)</p>
     </div>
   );
 }
