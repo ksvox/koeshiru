@@ -24,7 +24,7 @@ a { color: var(--verm); }
 .btn:active { transform: scale(0.985); }
 .btn:disabled { opacity: 0.5; }
 .linkbtn { background: none; border: none; color: var(--sub); text-decoration: underline; font-size: 13px; min-height: 44px; cursor: pointer; }
-.card { background: var(--paper); border-radius: 6px; }
+.card { background: var(--paper); border-radius: 6px; color: var(--ink); }
 .err { color: #C53A2A; font-size: 13px; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 14px; z-index: 50; max-width: 90vw; text-align: center; }
 .stamp-in { animation: stampIn 0.55s cubic-bezier(.2,1.6,.4,1) both; animation-delay: 0.35s; }
