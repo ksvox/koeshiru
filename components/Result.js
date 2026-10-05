@@ -1,5 +1,5 @@
 // 結果画面(声のパスポート)
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { C, Flag, MapShape, Stamp, Guilloche, Emblem } from './Art';
 import { Radar, PitchTrace, VoiceMap } from './Charts';
 import { classify, EN, LAND } from '../lib/types';
@@ -68,6 +68,8 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
   const [songs, setSongs] = useState(null);
   const [songErr, setSongErr] = useState(false);
   const [busy, setBusy] = useState('');
+  const [preview, setPreview] = useState(null);
+  const pageRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/songs').then((r) => r.json()).then((j) => {
@@ -86,42 +88,70 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
   const mrz2 = `${no}<0KSV${ymd}<${result.g === 'female' ? 'A' : 'E'}<090`.padEnd(36, '<');
   const link = `${LINKS.app}/?r=${encodeResult(result)}`;
 
-  async function image() {
-    return makeShareImage({ result, type, tx, dot, no });
+  const shareText = `わたしの声は「${tx.name}」タイプでした!ドレミを歌うだけでわかる歌声診断 #コエシル`;
+  const isMobile = () => /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+  // 画像を手元に残す(スマホは共有メニューから「画像を保存」、パソコンはダウンロード)
+  async function deliver(blob, name) {
+    const file = new File([blob], name, { type: 'image/png' });
+    if (isMobile() && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
   }
+
+  // 結果ページ全体を1枚の画像にして保存(本人用)
   async function save() {
     setBusy('save');
     try {
-      const blob = await image();
-      const file = new File([blob], `koeshiru-${ymd}.png`, { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] }) && /iPhone|iPad|Android/i.test(navigator.userAgent)) {
-        await navigator.share({ files: [file] });
-      } else {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = file.name;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      }
+      const html2canvas = (await import('html2canvas')).default;
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const el = pageRef.current;
+      const w = el.offsetWidth, h = el.scrollHeight;
+      const scale = Math.min(2, Math.sqrt(15000000 / (w * h)));
+      const cv = await html2canvas(el, {
+        backgroundColor: '#E7E1D3', scale, useCORS: true, logging: false, scrollX: 0, scrollY: -window.scrollY, windowWidth: w,
+        ignoreElements: (n) => (n.dataset && n.dataset.nosave === '1') || n.tagName === 'IFRAME',
+      });
+      const blob = await new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
+      await deliver(blob, `koeshiru-result-${ymd}.png`);
     } catch (e) { if (e && e.name !== 'AbortError') showToast('画像を作れませんでした。もう一度お試しください。'); }
     setBusy('');
   }
-  async function share() {
+
+  // シェア:先にシェアされる画像を大きく見せてから
+  async function openShare() {
     setBusy('share');
-    const text = `わたしの声は「${tx.name}」タイプでした!ドレミを歌うだけでわかる歌声診断 #コエシル`;
     try {
-      const blob = await image();
-      const file = new File([blob], `koeshiru-${ymd}.png`, { type: 'image/png' });
+      const blob = await makeShareImage({ result, type, tx, dot, no });
+      setPreview({ blob, url: URL.createObjectURL(blob) });
+    } catch (e) { showToast('シェア用の画像を作れませんでした。'); }
+    setBusy('');
+  }
+  function closeShare() {
+    if (preview) URL.revokeObjectURL(preview.url);
+    setPreview(null);
+  }
+  async function doShare() {
+    const file = new File([preview.blob], `koeshiru-${ymd}.png`, { type: 'image/png' });
+    try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: `${text}\n${LINKS.app}` });
+        await navigator.share({ files: [file], text: `${shareText}\n${LINKS.app}` });
       } else if (navigator.share) {
-        await navigator.share({ text, url: LINKS.app });
+        await navigator.share({ text: shareText, url: LINKS.app });
       } else {
-        await navigator.clipboard.writeText(`${text}\n${LINKS.app}`);
-        showToast('紹介文をコピーしました。画像は「結果を画像で保存」からどうぞ。');
+        await navigator.clipboard.writeText(`${shareText}\n${LINKS.app}`);
+        await deliver(preview.blob, file.name);
+        showToast('画像を保存し、紹介文をコピーしました。SNSに貼り付けてお使いください。');
       }
     } catch (e) { if (e && e.name !== 'AbortError') showToast('シェアできませんでした。'); }
-    setBusy('');
   }
   async function copyLink() {
     try { await navigator.clipboard.writeText(link); showToast('この結果のリンクをコピーしました。あとで開くと、同じ結果を見られます。'); }
@@ -129,9 +159,9 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
   }
 
   return (
-    <div className="paperbg" style={{ minHeight: '100vh', paddingBottom: 34 }}>
+    <div className="paperbg" ref={pageRef} style={{ minHeight: '100vh', paddingBottom: 34 }}>
       {fromLink ? (
-        <div style={{ background: C.navy, color: C.cream, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
+        <div data-nosave="1" style={{ background: C.navy, color: C.cream, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
           <span style={{ flex: 1 }}>保存された診断結果を表示しています</span>
           <button type="button" className="btn gold" style={{ width: 'auto', minHeight: 40, fontSize: 13 }} onClick={onRetry}>自分も診断する</button>
         </div>
@@ -247,24 +277,40 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
           <div className="rel">
             <div className="mono" style={{ fontSize: 10, letterSpacing: '0.25em', color: C.gold }}>NEXT DESTINATION</div>
             <div className="mincho" style={{ fontWeight: 700, fontSize: 22, marginTop: 6, color: C.paper }}>次の目的地は、五反田。</div>
-            <p style={{ fontSize: 14, lineHeight: 1.85, margin: '10px 0 16px' }}>この声を、英語の歌でもっと響かせてみませんか。K's VOXのお試しレッスンでは、診断で見えたあなたの声のタイプに合わせて、実際に歌いながら練習を体験できます。</p>
+            <p style={{ fontSize: 14, lineHeight: 1.85, margin: '10px 0 16px', color: C.gold }}>この声を、英語の歌でもっと響かせてみませんか。K's VOXのお試しレッスンでは、診断で見えたあなたの声のタイプに合わせて、実際に歌いながら練習を体験できます。</p>
             <a href={LINKS.apply} target="_blank" rel="noopener noreferrer" className="btn gold" style={{ fontSize: 15 }}>お試しレッスンについて見る</a>
           </div>
         </div>
       </section>
 
-      <section style={{ padding: '22px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <button type="button" className="btn primary" onClick={save} disabled={!!busy}>{busy === 'save' ? '画像を作成中…' : '結果を画像で保存'}</button>
-        <button type="button" className="btn" onClick={share} disabled={!!busy}>{busy === 'share' ? '画像を作成中…' : '結果をシェア'}</button>
+      <section data-nosave="1" style={{ padding: '22px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <button type="button" className="btn primary" onClick={save} disabled={!!busy}>{busy === 'save' ? '画像を作成中…' : '結果ページを画像で保存'}</button>
+        <button type="button" className="btn" onClick={openShare} disabled={!!busy}>{busy === 'share' ? '画像を作成中…' : '結果をシェア'}</button>
         <button type="button" className="linkbtn" onClick={copyLink}>この結果のリンクをコピー(あとで見返せます)</button>
         <button type="button" className="linkbtn" onClick={onRetry}>もう一度診断して、別の国のスタンプを集める</button>
         <p style={{ fontSize: 11, color: C.sub, textAlign: 'center', lineHeight: 1.7, margin: '6px 0 0' }}>声の状態や録音の環境で、結果が変わることもあります。</p>
       </section>
 
       {debug && result.raw ? (
-        <pre style={{ margin: '20px 14px 0', fontSize: 11, background: '#fff', padding: 10, borderRadius: 6, whiteSpace: 'pre-wrap' }}>
+        <pre data-nosave="1" style={{ margin: '20px 14px 0', fontSize: 11, background: '#fff', padding: 10, borderRadius: 6, whiteSpace: 'pre-wrap' }}>
           {JSON.stringify({ type, sub, radar: result.radar, map: result.map, f: result.f, raw: result.raw }, null, 1)}
         </pre>
+      ) : null}
+      {preview ? (
+        <div data-nosave="1" role="dialog" aria-modal="true" aria-label="シェアする画像の確認" style={{ position: 'fixed', inset: 0, background: 'rgba(10,14,26,0.92)', zIndex: 40, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 440, margin: '0 auto', padding: '24px 20px 40px', color: C.cream, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="mincho" style={{ fontSize: 20, fontWeight: 700 }}>この画像がシェアされます</div>
+            <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: C.mist }}>タイプ・グラフ・音程の軌跡と、ひとことコメントが入った画像です。録音した声や、お名前などは含まれません。</p>
+            <img src={preview.url} alt="シェアされる診断結果の画像" style={{ width: '100%', borderRadius: 8, display: 'block', boxShadow: '0 0 0 1px #3A4766' }} />
+            <div style={{ background: '#24304D', borderRadius: 6, padding: '10px 12px', fontSize: 13, lineHeight: 1.7 }}>
+              <div style={{ fontSize: 11, color: C.mist, marginBottom: 4 }}>一緒に送られる紹介文</div>
+              {shareText}<br />{LINKS.app}
+            </div>
+            <button type="button" className="btn gold" onClick={doShare}>この画像をシェアする</button>
+            <button type="button" className="btn ghostDark" onClick={() => deliver(preview.blob, `koeshiru-${ymd}.png`).catch(() => {})}>この画像を保存する</button>
+            <button type="button" className="linkbtn" style={{ color: C.mist }} onClick={closeShare}>閉じる</button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

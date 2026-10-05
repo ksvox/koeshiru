@@ -15,7 +15,7 @@ export function Radar({ values, small = false }) {
   const poly = (lv) => ANG.map((a) => radarPoint(lv, a).map((n) => n.toFixed(1)).join(',')).join(' ');
   const pos = [[150, 22, 'middle'], [262, 104, 'start'], [214, 248, 'start'], [86, 248, 'end'], [38, 104, 'end']];
   return (
-    <svg viewBox="-45 0 390 270" style={{ width: '100%', display: 'block' }} role="img" aria-label="歌の基礎力のレーダーチャート">
+    <svg viewBox="-82 0 464 275" style={{ width: '100%', display: 'block' }} role="img" aria-label="歌の基礎力のレーダーチャート">
       {[0.25, 0.5, 0.75, 1].map((lv) => <polygon key={lv} points={poly(lv)} fill="none" stroke={C.line} strokeWidth="1" />)}
       {ANG.map((a) => { const [x, y] = radarPoint(1, a); return <line key={a} x1="150" y1="140" x2={x} y2={y} stroke={C.line} strokeWidth="1" />; })}
       <polygon className="radar-shape" points={vals.map((v, i) => radarPoint(v, ANG[i]).map((n) => n.toFixed(1)).join(',')).join(' ')} fill="rgba(178,58,38,0.16)" stroke={C.verm} strokeWidth="2" strokeLinejoin="round" />
@@ -76,7 +76,7 @@ export function VoiceMap({ map, dark = false }) {
   const ink = dark ? '#E9E3D3' : C.ink, sub = dark ? '#AEB5C6' : C.sub, ln = dark ? '#3A4766' : C.line;
   const [x, y] = mapXY(map);
   return (
-    <svg viewBox="0 0 320 250" style={{ width: '100%', display: 'block' }} role="img" aria-label="声質マップ">
+    <svg viewBox="-34 0 388 250" style={{ width: '100%', display: 'block' }} role="img" aria-label="声質マップ">
       <rect x="20" y="20" width="280" height="200" fill="none" stroke={ln} strokeWidth="1" />
       <line x1="160" y1="20" x2="160" y2="220" stroke={ln} />
       <line x1="20" y1="120" x2="300" y2="120" stroke={ln} />

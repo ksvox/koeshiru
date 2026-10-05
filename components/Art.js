@@ -1,7 +1,7 @@
 // 国旗・地図・スタンプ・地紋など、パスポートの絵柄
 import MAPS from '../lib/maps.json';
 
-export const C = { navy: '#1E2B4A', navy2: '#16203A', paper: '#F3EEE2', ink: '#1A1F2B', sub: '#555A66', verm: '#B23A26', gold: '#C9A85A', line: '#D8D0BC' };
+export const C = { navy: '#1E2B4A', navy2: '#16203A', paper: '#F3EEE2', ink: '#1A1F2B', sub: '#555A66', verm: '#B23A26', gold: '#C9A85A', line: '#D8D0BC', cream: '#E9E3D3', mist: '#AEB5C6' };
 
 export function Flag({ code, w = 30 }) {
   const h = Math.round((w * 2) / 3);
