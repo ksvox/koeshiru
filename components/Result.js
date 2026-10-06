@@ -29,6 +29,24 @@ function Visa({ no, en, jp, page, children }) {
     </section>
   );
 }
+// あなたの声の波形(録音アプリの音量バーのような形)
+function Waveform({ wave }) {
+  if (!wave) {
+    return <svg width="78" height="70" viewBox="0 0 80 60" aria-hidden="true"><path d="M4 30 L12 30 L16 14 L22 46 L28 8 L34 52 L40 18 L46 40 L52 24 L58 34 L64 30 L76 30" fill="none" stroke={C.navy} strokeWidth="1.8" strokeLinejoin="round" /></svg>;
+  }
+  const vals = wave.split('').map(Number);
+  const n = vals.length, W = 90, H = 108, bw = W / n;
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="あなたの声の波形">
+      <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="#B9C4CF" strokeWidth="0.6" />
+      {vals.map((v, i) => {
+        const h = Math.max(1.2, (v / 9) * (H - 8));
+        return <rect key={i} x={i * bw + bw * 0.18} y={(H - h) / 2} width={bw * 0.64} height={h} rx={bw * 0.3} fill={C.navy} opacity={0.55 + (v / 9) * 0.45} />;
+      })}
+    </svg>
+  );
+}
+
 function Field({ jp, en, children, mono }) {
   return (
     <div>
@@ -193,9 +211,9 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
           <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
             <div style={{ flex: 'none', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
               <div style={{ width: 98, height: 122, background: '#E4E9EE', border: '1px solid #B9C4CF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="78" height="70" viewBox="0 0 80 60" aria-hidden="true"><path d="M4 30 L12 30 L16 14 L22 46 L28 8 L34 52 L40 18 L46 40 L52 24 L58 34 L64 30 L76 30" fill="none" stroke={C.navy} strokeWidth="1.8" strokeLinejoin="round" /></svg>
+                <Waveform wave={result.wave} />
               </div>
-              <div className="mono" style={{ fontSize: 8, color: C.sub }}>VOICEPRINT</div>
+              <div className="mono" style={{ fontSize: 8, color: C.sub }}>WAVEFORM</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, flex: 1 }}>
               <div>
