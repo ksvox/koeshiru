@@ -12,7 +12,8 @@ const LADDER = ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ', 'ド'];
 const TOTAL = 28; // カウント4+歌24
 
 function guideAt(p) {
-  const [c1, c2] = String(FIXED['見本ガイド(カウント)']).split('→').map((s) => s.trim());
+  let [c1, c2 = ''] = String(FIXED['見本ガイド(カウント)']).split('→').map((s) => s.trim());
+  if (c1.startsWith('📣') && c2 && !c2.startsWith('📣')) c2 = `📣${c2}`;
   if (p < 0) return '準備しています…';
   if (p < 2) return c1;
   if (p < 4) return c2;
@@ -195,7 +196,7 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
       setTimeout(() => {
         let res;
         try {
-          res = analyze({ ...data, t0: t.t0, sing: t.sing, rootMidi: root, latency });
+          res = analyze({ ...data, t0: t.t0, sing: t.sing, rootMidi: root, latency, ear });
         } catch (e) {
           res = { error: 'cut' };
         }
@@ -216,7 +217,7 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
 
   const running = phase === 'sample' || phase === 'rec';
   return (
-    <div className="navy rel" style={{ minHeight: '100vh', padding: '22px 20px 30px' }}>
+    <div className="navy rel" style={{ minHeight: '100vh', padding: '54px 20px 30px' }}>
       {phase === 'analyzing' ? (
         <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, textAlign: 'center' }}>
           <div className="spin" />
@@ -246,7 +247,8 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
               <div className="mono" style={{ fontSize: 11, letterSpacing: '0.25em', color: C.gold }}>STEP 2</div>
               <div className="mincho" style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.5 }}>次は、あなたの番です</div>
-              <p style={{ fontSize: 14, lineHeight: 1.9, color: '#D6D9E2', margin: 0 }}>見本と同じように、カウントのあとに「ドー、レー、ミー…」と歌ってください。歌詞は「ドレミ」の階名で大丈夫です。</p>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: '#D6D9E2', margin: 0 }}>見本と同じように、カウントのあとに「ドー、レー、ミー…」と歌ってください。</p>
+              <div style={{ border: `2px solid ${C.gold}`, borderRadius: 6, padding: '14px 16px', fontSize: 17, fontWeight: 700, lineHeight: 1.7, color: C.paper }}>{FIXED['録音前の案内']}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
                 <button type="button" className="btn ghostDark" onClick={playSample}>もう一度聴く</button>
                 <button type="button" className="btn primary" onClick={() => setPhase('choose')}>録音する</button>
@@ -256,6 +258,7 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
           {phase === 'choose' ? (
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 20 }}>
               <div className="mincho" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.5 }}>イヤホンをつけていますか?</div>
+              <div style={{ border: `2px solid ${C.gold}`, borderRadius: 6, padding: '14px 16px', fontSize: 17, fontWeight: 700, lineHeight: 1.7, color: C.paper }}>{FIXED['録音前の案内']}</div>
               <button type="button" className="btn primary" style={{ flexDirection: 'column', gap: 2, minHeight: 66 }} onClick={() => startRec(true)}>
                 <span>録音開始(イヤホンあり)</span><span style={{ fontSize: 12, fontWeight: 500, opacity: 0.9 }}>メトロノームを聴きながら歌います</span>
               </button>

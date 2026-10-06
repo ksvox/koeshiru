@@ -2,30 +2,42 @@
 import { C } from './Art';
 import { NOTES, SOLFEGE } from '../lib/config';
 
-const ANG = [-90, -18, 54, 126, 198];
-export const RADAR_LABELS = [['ピッチ', ''], ['リズム', ''], ['ロングトーン', '音を伸ばす力'], ['音の立ち上がり', ''], ['音のつながり', '']];
+export const RADAR_LABELS = [['ピッチ', ''], ['リズム', ''], ['ロングトーン', '音を伸ばす力'], ['音の立ち上がり', ''], ['音のつながり', ''], ['母音の響き', '音色の変化']];
+export const angles = (n) => Array.from({ length: n }, (_, i) => -90 + (i * 360) / n);
+export const ANG = angles(6);
 
 export function radarPoint(v, a, cx = 150, cy = 140, r = 100) {
   const t = (a * Math.PI) / 180;
   return [cx + r * v * Math.cos(t), cy + r * v * Math.sin(t)];
 }
+export function labelPos(a) {
+  const [x, y] = radarPoint(1.17, a);
+  const c = Math.cos((a * Math.PI) / 180), s = Math.sin((a * Math.PI) / 180);
+  const anchor = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle';
+  return [x, s < -0.9 ? y - 4 : s > 0.9 ? y + 14 : y + 5, anchor];
+}
 
 export function Radar({ values, small = false }) {
   const vals = values.map((v) => Math.max(0.12, Math.min(1, v)));
-  const poly = (lv) => ANG.map((a) => radarPoint(lv, a).map((n) => n.toFixed(1)).join(',')).join(' ');
-  const pos = [[150, 22, 'middle'], [262, 104, 'start'], [214, 248, 'start'], [86, 248, 'end'], [38, 104, 'end']];
+  const n = vals.length;
+  const ang = angles(n);
+  const labels = RADAR_LABELS.slice(0, n);
+  const poly = (lv) => ang.map((a) => radarPoint(lv, a).map((k) => k.toFixed(1)).join(',')).join(' ');
   return (
-    <svg viewBox="-82 0 464 275" style={{ width: '100%', display: 'block' }} role="img" aria-label="歌の基礎力のレーダーチャート">
+    <svg viewBox="-64 -2 428 298" style={{ width: '100%', display: 'block' }} role="img" aria-label="歌の基礎力のレーダーチャート">
       {[0.25, 0.5, 0.75, 1].map((lv) => <polygon key={lv} points={poly(lv)} fill="none" stroke={C.line} strokeWidth="1" />)}
-      {ANG.map((a) => { const [x, y] = radarPoint(1, a); return <line key={a} x1="150" y1="140" x2={x} y2={y} stroke={C.line} strokeWidth="1" />; })}
-      <polygon className="radar-shape" points={vals.map((v, i) => radarPoint(v, ANG[i]).map((n) => n.toFixed(1)).join(',')).join(' ')} fill="rgba(178,58,38,0.16)" stroke={C.verm} strokeWidth="2" strokeLinejoin="round" />
-      {vals.map((v, i) => { const [x, y] = radarPoint(v, ANG[i]); return <circle key={i} cx={x} cy={y} r="3.5" fill={C.verm} />; })}
-      {RADAR_LABELS.map(([l, sub], i) => (
-        <g key={l}>
-          <text x={pos[i][0]} y={pos[i][1]} textAnchor={pos[i][2]} fontFamily="var(--gothic)" fontWeight="700" fontSize={small ? 17 : 15} fill={C.ink}>{l}</text>
-          {sub && !small ? <text x={pos[i][0]} y={pos[i][1] + 15} textAnchor={pos[i][2]} fontFamily="var(--gothic)" fontSize="11" fill={C.sub}>{sub}</text> : null}
-        </g>
-      ))}
+      {ang.map((a) => { const [x, y] = radarPoint(1, a); return <line key={a} x1="150" y1="140" x2={x} y2={y} stroke={C.line} strokeWidth="1" />; })}
+      <polygon className="radar-shape" points={vals.map((v, i) => radarPoint(v, ang[i]).map((k) => k.toFixed(1)).join(',')).join(' ')} fill="rgba(178,58,38,0.16)" stroke={C.verm} strokeWidth="2" strokeLinejoin="round" />
+      {vals.map((v, i) => { const [x, y] = radarPoint(v, ang[i]); return <circle key={i} cx={x} cy={y} r="3.5" fill={C.verm} />; })}
+      {labels.map(([l, sub], i) => {
+        const [x, y, an] = labelPos(ang[i]);
+        return (
+          <g key={l}>
+            <text x={x} y={y} textAnchor={an} fontFamily="var(--gothic)" fontWeight="700" fontSize={small ? 17 : 15} fill={C.ink}>{l}</text>
+            {sub && !small ? <text x={x} y={y + 15} textAnchor={an} fontFamily="var(--gothic)" fontSize="11" fill={C.sub}>{sub}</text> : null}
+          </g>
+        );
+      })}
     </svg>
   );
 }

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Top from '../components/Top';
 import Session from '../components/Session';
 import Result from '../components/Result';
+import Zoom from '../components/Zoom';
 import { C } from '../components/Art';
 import { decodeResult } from '../lib/resultCode';
 import { FIXED } from '../lib/texts';
@@ -79,6 +80,7 @@ export default function Home() {
         <meta property="og:image" content={`${LINKS.app}/og-image.png`} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
+      <Zoom />
       <main className="app">
         {screen === 'top' ? <Top onStart={(g) => { setGender(g); setRetry(false); go('session'); }} /> : null}
         {screen === 'session' ? (

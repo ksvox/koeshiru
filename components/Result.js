@@ -1,6 +1,6 @@
 // 結果画面(声のパスポート)
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { C, Flag, MapShape, Stamp, Guilloche, Emblem } from './Art';
+import { C, Flag, MapShape, Stamp, Guilloche, Emblem, VoicePrint } from './Art';
 import { Radar, PitchTrace, VoiceMap } from './Charts';
 import { classify, EN, LAND } from '../lib/types';
 import { buildTexts, FIXED } from '../lib/texts';
@@ -29,24 +29,6 @@ function Visa({ no, en, jp, page, children }) {
     </section>
   );
 }
-// あなたの声の波形(録音アプリの音量バーのような形)
-function Waveform({ wave }) {
-  if (!wave) {
-    return <svg width="78" height="70" viewBox="0 0 80 60" aria-hidden="true"><path d="M4 30 L12 30 L16 14 L22 46 L28 8 L34 52 L40 18 L46 40 L52 24 L58 34 L64 30 L76 30" fill="none" stroke={C.navy} strokeWidth="1.8" strokeLinejoin="round" /></svg>;
-  }
-  const vals = wave.split('').map(Number);
-  const n = vals.length, W = 90, H = 108, bw = W / n;
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="あなたの声の波形">
-      <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="#B9C4CF" strokeWidth="0.6" />
-      {vals.map((v, i) => {
-        const h = Math.max(1.2, (v / 9) * (H - 8));
-        return <rect key={i} x={i * bw + bw * 0.18} y={(H - h) / 2} width={bw * 0.64} height={h} rx={bw * 0.3} fill={C.navy} opacity={0.55 + (v / 9) * 0.45} />;
-      })}
-    </svg>
-  );
-}
-
 function Field({ jp, en, children, mono }) {
   return (
     <div>
@@ -128,19 +110,22 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
   // 結果ページ全体を1枚の画像にして保存(本人用)
   async function save() {
     setBusy('save');
+    const z0 = document.documentElement.style.zoom;
     try {
       const html2canvas = (await import('html2canvas')).default;
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const el = pageRef.current;
+      document.documentElement.style.zoom = '';
       const w = el.offsetWidth, h = el.scrollHeight;
       const scale = Math.min(2, Math.sqrt(15000000 / (w * h)));
       const cv = await html2canvas(el, {
         backgroundColor: '#E7E1D3', scale, useCORS: true, logging: false, scrollX: 0, scrollY: -window.scrollY, windowWidth: w,
         ignoreElements: (n) => (n.dataset && n.dataset.nosave === '1') || n.tagName === 'IFRAME',
       });
+      document.documentElement.style.zoom = z0;
       const blob = await new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
       await deliver(blob, `koeshiru-result-${ymd}.png`);
-    } catch (e) { if (e && e.name !== 'AbortError') showToast('画像を作れませんでした。もう一度お試しください。'); }
+    } catch (e) { document.documentElement.style.zoom = z0; if (e && e.name !== 'AbortError') showToast('画像を作れませんでした。もう一度お試しください。'); }
     setBusy('');
   }
 
@@ -179,7 +164,7 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
   return (
     <div className="paperbg" ref={pageRef} style={{ minHeight: '100vh', paddingBottom: 34 }}>
       {fromLink ? (
-        <div data-nosave="1" style={{ background: C.navy, color: C.cream, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
+        <div data-nosave="1" style={{ background: C.navy, color: C.cream, padding: '54px 16px 12px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
           <span style={{ flex: 1 }}>保存された診断結果を表示しています</span>
           <button type="button" className="btn gold" style={{ width: 'auto', minHeight: 40, fontSize: 13 }} onClick={onRetry}>自分も診断する</button>
         </div>
@@ -211,9 +196,9 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
           <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
             <div style={{ flex: 'none', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
               <div style={{ width: 98, height: 122, background: '#E4E9EE', border: '1px solid #B9C4CF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Waveform wave={result.wave} />
+                <VoicePrint wave={result.wave} trace={result.trace} />
               </div>
-              <div className="mono" style={{ fontSize: 8, color: C.sub }}>WAVEFORM</div>
+              <div className="mono" style={{ fontSize: 8, color: C.sub }}>VOICEPRINT</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, flex: 1 }}>
               <div>
@@ -274,9 +259,13 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
       </Visa>
 
       <Visa no="04" en="NEXT STEP" jp="もっと良くなるために" page="07">
-        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 6, padding: 14, fontSize: 14, lineHeight: 1.85 }}>{tx.advice}</div>
-        <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700 }}>英語で歌うとき</div>
-        <p className="p" style={{ marginTop: 6 }}>{tx.english}</p>
+        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 6, padding: 14, fontSize: 14, lineHeight: 1.85 }}>{tx.practice}</div>
+        {tx.ja.map((t, i) => <p key={i} className="p" style={{ marginTop: 12 }}>{t}</p>)}
+        <div style={{ marginTop: 20, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>英語で歌うとき</div>
+          <p className="p" style={{ marginTop: 6, fontWeight: 700, color: C.verm }}>{tx.enLead}</p>
+          {tx.en.map((t, i) => <p key={i} className="p" style={{ marginTop: 8 }}>{t}</p>)}
+        </div>
       </Visa>
 
       <Visa no="05" en="YOUR FLIGHTS" jp="あなたの声に合う曲" page="08">
@@ -294,8 +283,8 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
           <Guilloche w={362} h={220} opacity={0.14} />
           <div className="rel">
             <div className="mono" style={{ fontSize: 10, letterSpacing: '0.25em', color: C.gold }}>NEXT DESTINATION</div>
-            <div className="mincho" style={{ fontWeight: 700, fontSize: 22, marginTop: 6, color: C.paper }}>次の目的地は、五反田。</div>
-            <p style={{ fontSize: 14, lineHeight: 1.85, margin: '10px 0 16px', color: C.gold }}>この声を、英語の歌でもっと響かせてみませんか。K's VOXのお試しレッスンでは、診断で見えたあなたの声のタイプに合わせて、実際に歌いながら練習を体験できます。</p>
+            <div className="mincho" style={{ fontWeight: 700, fontSize: 22, marginTop: 6, color: C.paper }}>{FIXED['お試しレッスンのカード(見出し)']}</div>
+            <p style={{ fontSize: 14, lineHeight: 1.85, margin: '10px 0 16px', color: C.gold }}>{FIXED['お試しレッスンのカード(本文)']}</p>
             <a href={LINKS.apply} target="_blank" rel="noopener noreferrer" className="btn gold" style={{ fontSize: 15 }}>お試しレッスンについて見る</a>
           </div>
         </div>
@@ -305,7 +294,7 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
         <button type="button" className="btn primary" onClick={save} disabled={!!busy}>{busy === 'save' ? '画像を作成中…' : '結果ページを画像で保存'}</button>
         <button type="button" className="btn" onClick={openShare} disabled={!!busy}>{busy === 'share' ? '画像を作成中…' : '結果をシェア'}</button>
         <button type="button" className="linkbtn" onClick={copyLink}>この結果のリンクをコピー(あとで見返せます)</button>
-        <button type="button" className="linkbtn" onClick={onRetry}>もう一度診断して、別の国のスタンプを集める</button>
+        <button type="button" className="btn" style={{ marginTop: 4 }} onClick={onRetry}>{FIXED['もう一度診断ボタン'] || 'もう一度診断する'}</button>
         <p style={{ fontSize: 11, color: C.sub, textAlign: 'center', lineHeight: 1.7, margin: '6px 0 0' }}>声の状態や録音の環境で、結果が変わることもあります。</p>
       </section>
 

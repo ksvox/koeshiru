@@ -84,3 +84,32 @@ export function Emblem({ size = 64, color = C.gold }) {
     </svg>
   );
 }
+
+// あなただけの声紋(本人の歌声の音量の波形と音程の動きから描く)
+import { NOTES as _NOTES, BEAT as _BEAT } from '../lib/config';
+export function VoicePrint({ wave, trace, w = 90, h = 108 }) {
+  const vals = wave ? wave.split('').map(Number) : Array(48).fill(5);
+  const devs = (trace || []).map((v, q) => {
+    if (v === null || v === undefined) return 0;
+    const b = (q + 0.5) / 8;
+    const n = _NOTES.find(([, st, len]) => b >= st && b < st + len);
+    return n ? Math.max(-1.5, Math.min(1.5, v / 10 - n[0])) : 0;
+  });
+  const T = devs.length || 1;
+  const cx = w / 2, cy = h / 2;
+  const rings = [];
+  for (let k = 0; k < 13; k++) {
+    const base = 4 + k * 3.05;
+    let d = '';
+    for (let a = 0; a <= 96; a++) {
+      const th = (a / 96) * Math.PI * 2;
+      const wv = vals[Math.floor((a / 96) * (vals.length - 1))] / 9;
+      const dv = devs.length ? devs[(Math.floor((a / 96) * T) + k * 11) % T] : 0;
+      const r = base * (0.8 + 0.2 * wv) + dv * (0.6 + k * 0.22) + Math.sin(th * 3 + k * 0.7) * 0.6;
+      const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th) * 1.18;
+      d += `${a ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+    rings.push(<path key={k} d={`${d}Z`} fill="none" stroke={C.navy} strokeWidth={k % 3 ? 0.6 : 1} opacity={0.35 + k * 0.045} />);
+  }
+  return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label="あなたの声紋" style={{ display: 'block', overflow: 'hidden' }}>{rings}</svg>;
+}
