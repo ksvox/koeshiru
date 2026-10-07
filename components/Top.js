@@ -65,7 +65,7 @@ export default function Top({ onStart }) {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, lineHeight: 1.7 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth="1.6" aria-hidden="true" style={{ flex: 'none', marginTop: 2 }}><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><rect x="3" y="14" width="4" height="6" rx="1" /><rect x="17" y="14" width="4" height="6" rx="1" /></svg>
-          <span>イヤホンをつけると、より正確に診断できます。</span>
+          <span>ワイヤレスイヤホンは外して、静かな場所でお試しください。</span>
         </div>
         {err ? <div className="err" role="alert">{err}</div> : null}
         <button type="button" className="btn primary" onClick={start}>診断をはじめる</button>

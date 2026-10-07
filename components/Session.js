@@ -110,7 +110,7 @@ function Panel({ pos, mode, live, level }) {
 
 export default function Session({ gender, onResult, onError, onBack, skipIntro }) {
   const root = ROOT[gender];
-  const [phase, setPhase] = useState(skipIntro ? 'listened' : 'intro'); // intro / sample / listened / choose / prep / rec / analyzing
+  const [phase, setPhase] = useState(skipIntro ? 'listened' : 'intro'); // intro / sample / listened / prep / rec / analyzing
   const [pos, setPos] = useState(-1);
   const [live, setLive] = useState([]);
   const [level, setLevel] = useState(0);
@@ -238,7 +238,7 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
               <div className="mincho" style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.5 }}>まずは見本を<br />聴いてみましょう</div>
               <p style={{ fontSize: 14, lineHeight: 1.9, color: '#D6D9E2', margin: 0 }}>カウントが4回鳴ったあと、「ドレミファソラシド」と上がり、上のドを4拍伸ばします。息継ぎをして、今度は「ドシラソファミレド」と下がり、最後のドを4拍伸ばします。</p>
               <div className="card" style={{ padding: '14px 16px', color: C.ink, fontSize: 13, lineHeight: 1.8 }}>
-                キー:<b>{gender === 'female' ? 'A(ラの音から)' : 'E(ミの音から)'}</b> ・ テンポ:<b>90</b><br />画面の文字ガイドと光が、歌うタイミングを教えてくれます。
+                キー:<b>{gender === 'female' ? 'A(ラの音から)' : 'E(ミの音から)'}</b> ・ テンポ:<b>90</b><br />見本はメトロノームつきです。何度か聴いて一緒に歌い、テンポを体に入れてから録音しましょう。
               </div>
               <button type="button" className="btn gold" onClick={playSample}>▶ 見本を聴く</button>
             </div>
@@ -247,26 +247,13 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
               <div className="mono" style={{ fontSize: 11, letterSpacing: '0.25em', color: C.gold }}>STEP 2</div>
               <div className="mincho" style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.5 }}>次は、あなたの番です</div>
-              <p style={{ fontSize: 14, lineHeight: 1.9, color: '#D6D9E2', margin: 0 }}>見本と同じように、カウントのあとに「ドー、レー、ミー…」と歌ってください。</p>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: '#D6D9E2', margin: 0 }}>見本と同じように、カウントのあとに「ドー、レー、ミー…」と歌ってください。録音ではカウントのあと音が止まるので、<b>光の点滅を目安に、自分でテンポをキープ</b>して歌います。</p>
               <div style={{ border: `2px solid ${C.gold}`, borderRadius: 6, padding: '14px 16px', fontSize: 17, fontWeight: 700, lineHeight: 1.7, color: C.paper }}>{FIXED['録音前の案内']}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
                 <button type="button" className="btn ghostDark" onClick={playSample}>もう一度聴く</button>
-                <button type="button" className="btn primary" onClick={() => setPhase('choose')}>録音する</button>
+                <button type="button" className="btn primary" onClick={() => startRec(false)}>録音する</button>
               </div>
-            </div>
-          ) : null}
-          {phase === 'choose' ? (
-            <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 20 }}>
-              <div className="mincho" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.5 }}>イヤホンをつけていますか?</div>
-              <div style={{ border: `2px solid ${C.gold}`, borderRadius: 6, padding: '14px 16px', fontSize: 17, fontWeight: 700, lineHeight: 1.7, color: C.paper }}>{FIXED['録音前の案内']}</div>
-              <button type="button" className="btn primary" style={{ flexDirection: 'column', gap: 2, minHeight: 66 }} onClick={() => startRec(true)}>
-                <span>録音開始(イヤホンあり)</span><span style={{ fontSize: 12, fontWeight: 500, opacity: 0.9 }}>メトロノームを聴きながら歌います</span>
-              </button>
-              <button type="button" className="btn ghostDark" style={{ flexDirection: 'column', gap: 2, minHeight: 66 }} onClick={() => startRec(false)}>
-                <span>録音開始(イヤホンなし)</span><span style={{ fontSize: 12, fontWeight: 500, opacity: 0.85 }}>カウントのあとは、光の点滅に合わせて歌います</span>
-              </button>
-              <p style={{ fontSize: 12, color: '#AEB5C6', lineHeight: 1.8, margin: 0 }}>※ Bluetoothのワイヤレスイヤホンは音が少し遅れて届くことがあります。お持ちなら有線イヤホンがおすすめです。<br />※ 初めて録音する時は、マイクの使用許可を求められます。「許可」を選んでください。</p>
-              <button type="button" className="linkbtn" style={{ color: '#AEB5C6' }} onClick={() => setPhase('listened')}>戻る</button>
+              <p style={{ fontSize: 12, color: '#AEB5C6', lineHeight: 1.8, margin: 0 }}>※ ワイヤレスイヤホンは外して、スマホのスピーカーとマイクで録音してください(イヤホンのマイクだと声が正しく測れません)。<br />※ 初めて録音する時は、マイクの使用許可を求められます。「許可」を選んでください。</p>
             </div>
           ) : null}
           {running ? (

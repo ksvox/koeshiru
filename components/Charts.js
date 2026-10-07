@@ -1,6 +1,6 @@
 // レーダー・音程の軌跡・声質マップ
 import { C } from './Art';
-import { NOTES, SOLFEGE } from '../lib/config';
+import { NOTES, SOLFEGE, radarShow } from '../lib/config';
 
 export const RADAR_LABELS = [['ピッチ', ''], ['リズム', ''], ['ロングトーン', '音を伸ばす力'], ['音の立ち上がり', ''], ['音のつながり', ''], ['母音の響き', '音色の変化']];
 export const angles = (n) => Array.from({ length: n }, (_, i) => -90 + (i * 360) / n);
@@ -18,7 +18,7 @@ export function labelPos(a) {
 }
 
 export function Radar({ values, small = false }) {
-  const vals = values.map((v) => Math.max(0.12, Math.min(1, v)));
+  const vals = values.map(radarShow);
   const n = vals.length;
   const ang = angles(n);
   const labels = RADAR_LABELS.slice(0, n);
