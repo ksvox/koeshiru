@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { C, Flag, Guilloche } from './Art';
 import { ORDER } from '../lib/types';
 import { TYPES } from '../lib/texts';
+import Banner from './Banner';
 
 function Feat({ no, title, body, children, last }) {
   return (
@@ -74,6 +75,7 @@ export default function Top({ onStart }) {
           録音した声は、どこにも送信・保存されません
         </div>
       </div>
+      <Banner />
       <p className="rel" style={{ textAlign: 'center', fontSize: 11, color: '#7F89A3', marginTop: 22 }}>© ボーカル道場K's VOX (東京・五反田)</p>
     </div>
   );
