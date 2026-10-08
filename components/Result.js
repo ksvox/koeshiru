@@ -1,7 +1,7 @@
 // 結果画面(声のパスポート)
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { C, Flag, MapShape, Stamp, Guilloche, Emblem, VoicePrint } from './Art';
-import { Radar, PitchTrace, VoiceMap } from './Charts';
+import { Radar, PitchTrace, VoiceMap, VowelCross, TimingChart } from './Charts';
 import { classify, EN, LAND } from '../lib/types';
 import { buildTexts, FIXED } from '../lib/texts';
 import { recommend } from '../lib/recommend';
@@ -253,12 +253,26 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
         <PitchTrace trace={result.trace} />
       </Visa>
 
-      <Visa no="03" en="VOICE MAP" jp="声質マップ" page="06">
+      {result.tm ? (
+        <Visa no="03" en="TIME FEEL" jp="拍感覚(タイム感)" page="06">
+          <TimingChart tm={result.tm} />
+          <p style={{ fontSize: 12, color: C.sub, margin: '6px 0 0', lineHeight: 1.7 }}>0の線が光の点滅(拍)ぴったり。帯の中なら合格ゾーンです。全体が一定に早い・遅い分は、スマホの音の遅れとして差し引いています。</p>
+        </Visa>
+      ) : null}
+
+      {result.f && result.f.vc ? (
+        <Visa no="04" en="VOWEL CHARACTER" jp="母音の個性" page="07">
+          <VowelCross vc={result.f.vc} />
+          <p style={{ fontSize: 12, color: C.sub, margin: '6px 0 0', lineHeight: 1.7 }}>「ド・レ・ミ・ファ」の「お・え・い・あ」の響きを測り、それぞれの母音らしさが線の先に向かってどれだけ出ているかを示しています。4つとも個性が出ていると、整った四角形になります。</p>
+        </Visa>
+      ) : null}
+
+      <Visa no="05" en="VOICE MAP" jp="声質マップ" page="08">
         <VoiceMap map={result.map} />
         <p style={{ fontSize: 12, color: C.sub, margin: '6px 0 0', lineHeight: 1.7 }}>良い・悪いではなく、あなたの声の個性です。</p>
       </Visa>
 
-      <Visa no="04" en="NEXT STEP" jp="もっと良くなるために" page="07">
+      <Visa no="06" en="NEXT STEP" jp="もっと良くなるために" page="09">
         <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 6, padding: 14, fontSize: 14, lineHeight: 1.85 }}>{tx.practice}</div>
         {tx.ja.map((t, i) => <p key={i} className="p" style={{ marginTop: 12 }}>{t}</p>)}
         <div style={{ marginTop: 20, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
@@ -268,7 +282,7 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
         </div>
       </Visa>
 
-      <Visa no="05" en="YOUR FLIGHTS" jp="あなたの声に合う曲" page="08">
+      <Visa no="07" en="YOUR FLIGHTS" jp="あなたの声に合う曲" page="10">
         <p style={{ fontSize: 13, lineHeight: 1.75, margin: '0 0 12px' }}>K's VOXが制作した<b>オリジナル英語曲</b>の中から、あなたの声のタイプに合う3曲を選びました。</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {songs ? songs.map((s, i) => <SongCard key={s.id} song={s} gate={String(i + 1).padStart(2, '0')} />) : null}

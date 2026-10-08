@@ -102,3 +102,58 @@ export function VoiceMap({ map, dark = false }) {
     </svg>
   );
 }
+
+// 母音の個性(中心に「う」、✕の線の先に い・え・あ・お)
+const VPOS = { i: [-1, -1], e: [1, -1], a: [-1, 1], o: [1, 1] };
+const VLAB = { i: 'い', e: 'え', a: 'あ', o: 'お' };
+export function VowelCross({ vc }) {
+  const v = { i: vc[0], e: vc[1], a: vc[2], o: vc[3] };
+  const c = 130, R = 88;
+  const show = (x) => Math.max(0.06, Math.min(1, x));
+  const pt = (k, f) => [c + VPOS[k][0] * R * f, c + VPOS[k][1] * R * f];
+  const order = ['i', 'e', 'o', 'a'];
+  return (
+    <svg viewBox="0 0 260 260" style={{ width: '100%', maxWidth: 320, display: 'block', margin: '0 auto' }} role="img" aria-label="母音の個性のグラフ">
+      {order.map((k) => { const [x, y] = pt(k, 1); return <line key={k} x1={c} y1={c} x2={x} y2={y} stroke={C.sub} strokeWidth="1" opacity="0.55" />; })}
+      {order.map((k) => [0.33, 0.66].map((f) => { const [x, y] = pt(k, f); return <circle key={k + f} cx={x} cy={y} r="1.6" fill={C.sub} opacity="0.5" />; }))}
+      <polygon points={order.map((k) => pt(k, show(v[k])).map((n) => n.toFixed(1)).join(',')).join(' ')} fill="rgba(178,58,38,0.16)" stroke={C.verm} strokeWidth="2" strokeLinejoin="round" />
+      {order.map((k) => { const [x, y] = pt(k, show(v[k])); return <circle key={k} cx={x} cy={y} r="4" fill={C.verm} />; })}
+      {order.map((k) => {
+        const [x, y] = pt(k, 1.17);
+        return (
+          <g key={k}>
+            <circle cx={x} cy={y} r="15" fill="none" stroke={C.ink} strokeWidth="1.3" />
+            <text x={x} y={y + 6} textAnchor="middle" fontSize="16" fontWeight="700" fontFamily="var(--gothic)" fill={C.ink}>{VLAB[k]}</text>
+          </g>
+        );
+      })}
+      <circle cx={c} cy={c} r="15" fill={C.paper} stroke="#3B5A8C" strokeWidth="1.5" />
+      <text x={c} y={c + 6} textAnchor="middle" fontSize="16" fontWeight="700" fontFamily="var(--gothic)" fill="#3B5A8C">う</text>
+    </svg>
+  );
+}
+
+// 拍感覚(タイム感):16音それぞれの拍に対する早い・遅い
+export function TimingChart({ tm, zone = 150 }) {
+  const x0 = 40, w = 36, cy = 96, lim = 300, sc = 70 / lim;
+  return (
+    <svg viewBox="0 0 640 200" style={{ width: '100%', display: 'block' }} role="img" aria-label="拍感覚のグラフ">
+      <rect x={x0 - 4} y={cy - zone * sc} width={16 * w + 8} height={2 * zone * sc} fill={C.line} opacity="0.45" />
+      <line x1={x0 - 4} y1={cy} x2={x0 + 16 * w + 4} y2={cy} stroke={C.ink} />
+      <text x={x0 - 8} y={cy - 58} textAnchor="end" fontSize="11" fontFamily="var(--gothic)" fill={C.sub}>遅い</text>
+      <text x={x0 - 8} y={cy + 66} textAnchor="end" fontSize="11" fontFamily="var(--gothic)" fill={C.sub}>早い</text>
+      <line x1={x0 + 8 * w} y1="18" x2={x0 + 8 * w} y2="172" stroke="#898781" strokeDasharray="3 3" />
+      <text x={x0 + 4 * w} y="14" textAnchor="middle" fontSize="11" fontFamily="var(--gothic)" fill={C.sub}>上り</text>
+      <text x={x0 + 12 * w} y="14" textAnchor="middle" fontSize="11" fontFamily="var(--gothic)" fill={C.sub}>下り</text>
+      {tm.map((v, i) => {
+        const x = x0 + i * w + 8;
+        const label = <text key={'l' + i} x={x + (w - 16) / 2} y="192" textAnchor="middle" fontSize="12" fontFamily="var(--gothic)" fill={C.ink}>{SOLFEGE[i]}</text>;
+        if (v === null || v === undefined) return [label, <text key={'q' + i} x={x + (w - 16) / 2} y={cy + 4} textAnchor="middle" fontSize="10" fill={C.sub}>?</text>];
+        const cl = Math.max(-lim, Math.min(lim, v));
+        const hh = Math.max(1.5, Math.abs(cl) * sc);
+        const out = Math.abs(v) > zone;
+        return [label, <rect key={'b' + i} x={x} y={cl > 0 ? cy - hh : cy} width={w - 16} height={hh} rx="2" fill={out ? C.verm : '#3B5A8C'} />];
+      })}
+    </svg>
+  );
+}
