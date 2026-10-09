@@ -8,6 +8,8 @@ import { C } from '../components/Art';
 import { decodeResult } from '../lib/resultCode';
 import { FIXED } from '../lib/texts';
 import { LINKS } from '../lib/config';
+import { classify } from '../lib/types';
+import { sendDiag } from '../lib/stats';
 
 const ERR = {
   quiet: FIXED['エラー:声が小さい'],
@@ -62,7 +64,9 @@ export default function Home() {
     const now = new Date();
     const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const seed = (Math.random() * 2147483647) >>> 0;
-    setResult({ ...r, g: gender, date, seed });
+    const full = { ...r, g: gender, date, seed };
+    setResult(full);
+    if (!debug) sendDiag(full, classify(full).type);
     setFromLink(false);
     go('result');
   }

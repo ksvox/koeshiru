@@ -7,6 +7,7 @@ import { buildTexts, FIXED } from '../lib/texts';
 import { recommend } from '../lib/recommend';
 import { encodeResult } from '../lib/resultCode';
 import { makeShareImage } from '../lib/shareImage';
+import { sendTrial } from '../lib/stats';
 import { LINKS } from '../lib/config';
 
 const TAGC = { 強み: '#2F6B45', 伸びしろ: C.verm, 特徴: '#3B5A8C' };
@@ -299,7 +300,7 @@ export default function Result({ result, fromLink, onRetry, showToast, debug }) 
             <div className="mono" style={{ fontSize: 10, letterSpacing: '0.25em', color: C.gold }}>NEXT DESTINATION</div>
             <div className="mincho" style={{ fontWeight: 700, fontSize: 22, marginTop: 6, color: C.paper }}>{FIXED['お試しレッスンのカード(見出し)']}</div>
             <p style={{ fontSize: 14, lineHeight: 1.85, margin: '10px 0 16px', color: C.gold }}>{FIXED['お試しレッスンのカード(本文)']}</p>
-            <a href={LINKS.apply} target="_blank" rel="noopener noreferrer" className="btn gold" style={{ fontSize: 15 }}>お試しレッスンについて見る</a>
+            <a href={LINKS.apply} target="_blank" rel="noopener noreferrer" className="btn gold" style={{ fontSize: 15 }} onClick={() => { if (!debug) sendTrial(); }}>お試しレッスンについて見る</a>
           </div>
         </div>
       </section>

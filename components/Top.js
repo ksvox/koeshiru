@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { C, Flag, Guilloche } from './Art';
 import { ORDER } from '../lib/types';
-import { TYPES } from '../lib/texts';
+import { TYPES, FIXED } from '../lib/texts';
 import Banner from './Banner';
 
 function Feat({ no, title, body, children, last }) {
@@ -41,7 +41,7 @@ export default function Top({ onStart }) {
 
       <div className="card rel" style={{ margin: '26px 16px 0', padding: '6px 18px 4px' }}>
         <Feat no="01" title="声を解析" body="ピッチ・リズム・ロングトーン・音の立ち上がり・音のつながり、そして声の明るさや息の混ざり方まで細かく測定します。" />
-        <Feat no="02" title="7つのタイプに分類" body="あなたの声の響きを、言語の響きにたとえた7タイプで診断します。">
+        <Feat no="02" title="7つのタイプに分類" body="あなたの声の響きを、言語の響きにたとえた7タイプで診断。歌の基礎力や拍感覚、母音の個性まで、グラフで分かりやすく見える化します。">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 4px', marginTop: 10 }}>
             {ORDER.map((c) => (
               <div key={c} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, width: 46 }}>
@@ -66,13 +66,13 @@ export default function Top({ onStart }) {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, lineHeight: 1.7 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth="1.6" aria-hidden="true" style={{ flex: 'none', marginTop: 2 }}><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><rect x="3" y="14" width="4" height="6" rx="1" /><rect x="17" y="14" width="4" height="6" rx="1" /></svg>
-          <span>ワイヤレスイヤホンは外して、静かな場所でお試しください。</span>
+          <span>ワイヤレスイヤホンは外し、スマホを顔から30cmほど離して、静かな場所でお試しください。</span>
         </div>
         {err ? <div className="err" role="alert">{err}</div> : null}
         <button type="button" className="btn primary" onClick={start}>診断をはじめる</button>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', fontSize: 12, color: C.sub }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-          録音した声は、どこにも送信・保存されません
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12, color: C.sub, lineHeight: 1.7 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="1.8" aria-hidden="true" style={{ flex: 'none', marginTop: 3 }}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+          <span>{FIXED['トップ・注意書き']}</span>
         </div>
       </div>
       <Banner />

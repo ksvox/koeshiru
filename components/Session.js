@@ -253,7 +253,7 @@ export default function Session({ gender, onResult, onError, onBack, skipIntro }
                 <button type="button" className="btn ghostDark" onClick={playSample}>もう一度聴く</button>
                 <button type="button" className="btn primary" onClick={() => startRec(false)}>録音する</button>
               </div>
-              <p style={{ fontSize: 12, color: '#AEB5C6', lineHeight: 1.8, margin: 0 }}>※ ワイヤレスイヤホンは外して、スマホのスピーカーとマイクで録音してください(イヤホンのマイクだと声が正しく測れません)。<br />※ 初めて録音する時は、マイクの使用許可を求められます。「許可」を選んでください。</p>
+              <p style={{ fontSize: 12, color: '#AEB5C6', lineHeight: 1.8, margin: 0 }}>※ スマホは顔から<b>30cmほど</b>離して持ってください。近すぎると声が割れて、うまく測れないことがあります。<br />※ ワイヤレスイヤホンは外して、スマホのスピーカーとマイクで録音してください(イヤホンのマイクだと声が正しく測れません)。<br />※ 初めて録音する時は、マイクの使用許可を求められます。「許可」を選んでください。</p>
             </div>
           ) : null}
           {running ? (
